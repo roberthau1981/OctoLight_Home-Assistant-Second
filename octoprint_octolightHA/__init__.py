@@ -216,7 +216,7 @@ class OctoLightHAPlugin(
 	def get_update_information(self):
 		return False
 		 return dict(
-		 	octolight=dict(
+		 	octolightHA=dict(
 		 		displayName="OctoLightHA",
 		 		displayVersion=self._plugin_version,
 
