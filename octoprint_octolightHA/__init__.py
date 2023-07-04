@@ -123,7 +123,6 @@ class OctoLightHAPlugin(
 		return light_bool
 
 	def on_after_startup(self):
-		self.light_state = self.get_HA_state()
 		self._logger.info("--------------------------------------------")
 		self._logger.info("OctoLightHA started, listening for GET request")
 		self._logger.info("Address: {}, API_Key: {}, Entity_ID: {}, Verify_Certificate: {}".format(
@@ -132,6 +131,15 @@ class OctoLightHAPlugin(
 			self._settings.get(["entity_id"]),
 			self._settings.get(["verify_certificate"]),
 		))
+
+		self.light_state = self.get_HA_state()
+		self.isLightOn = self.light_state
+		self._plugin_manager.send_plugin_message(self._identifier, dict(isLightOn=self.light_state))
+		self._logger.debug("POST request. Light state: {}, isLightOn: {}".format(
+			self.light_state,
+			self.isLightOn
+		))
+		
 		self._logger.debug("Current light status is: {}".format(self.light_state))
 		self._logger.debug("--------------------------------------------")
 
