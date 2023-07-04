@@ -11,7 +11,7 @@ Install manually using this URL:
 	https://github.com/mark-bloom/OctoLight-HomeAssistant/blob/master/README.md
 
 ## Configuration
-![Settings panel](img/settings.png)
+![Settings panel](img/settings1.png)
 
 Curently, you can configure four settings:
 - `Address`: The IP address or hostname of your HomeAssistant server. e.g. http://ip:port or http://hostname:port. Do not include a trailing slash /
