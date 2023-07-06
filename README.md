@@ -8,7 +8,7 @@ Code forked from [OctoLight by gigibu5](https://github.com/gigibu5/OctoLight) wi
 ## Setup
 Install manually using this URL:
 
-	https://github.com/mark-bloom/OctoLight-HomeAssistant/blob/master/README.md
+	https://github.com/mark-bloom/OctoLight_Home-Assistant/archive/master.zip
 
 ## Configuration
 ![Settings panel](img/settings1.png)
