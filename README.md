@@ -6,7 +6,7 @@ Code forked from [OctoLight by gigibu5](https://github.com/gigibu5/OctoLight) wi
 ![WebUI interface](img/screenshoot.png)
 
 ## Setup
-Install manually using this URL:
+Install via the bundled [Plugin Manager](https://docs.octoprint.org/en/master/bundledplugins/pluginmanager.html) or manually using this URL:
 
 	https://github.com/mark-bloom/OctoLight_Home-Assistant/archive/master.zip
 
