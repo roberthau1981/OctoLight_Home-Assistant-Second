@@ -11,8 +11,6 @@ Install via the bundled [Plugin Manager](https://docs.octoprint.org/en/master/bu
 	https://github.com/mark-bloom/OctoLight_Home-Assistant/archive/master.zip
 
 ## Configuration
-![Settings panel](img/settings1.png)
-
 Curently, you can configure four settings:
 - `Address`: The IP address or hostname of your HomeAssistant server. e.g. http://ip:port or http://hostname:port. Do not include a trailing slash /
 
@@ -21,6 +19,8 @@ Curently, you can configure four settings:
 - `Entity ID`: The Home Assistant ID of the entity you'd like to control. Currently must be a light device supporting the light/toggle action.
 
 - `Verify certificate`: Toggle on to verify TLS certificate and not connect on certificate issues (keep disabled if using http on local network).
+
+![Settings panel](img/settings1.png)
 
 ## API
 **UNTESTED in HA MOD**
