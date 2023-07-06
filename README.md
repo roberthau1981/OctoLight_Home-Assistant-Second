@@ -20,6 +20,7 @@ Curently, you can configure four settings:
 
 - `Verify certificate`: Toggle on to verify TLS certificate and not connect on certificate issues (keep disabled if using http on local network).
 
+
 ![Settings panel](img/settings1.png)
 
 ## API
