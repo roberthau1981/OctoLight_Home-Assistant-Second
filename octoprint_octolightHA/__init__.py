@@ -67,15 +67,21 @@ class OctoLightHAPlugin(
         )
     
     def get_HA_state(self):
+        # Applicable to both light and switch entity types
+        self._logger.debug("Running get_HA_state")
         _entity_id = self.config['entity_id']
-        url = self.config['address'] + '/api' + _entity_id
+        url = self.config['address'] + '/api/states/' + _entity_id
+        self._logger.debug("get_HA_state url is: {}".format(url))
         
         headers = dict(Authorization='Bearer ' + self.config['api_key'])
 
         response = None
+        status = None
+
         verify_certificate = self.config['verify_certificate']
         try:
             response = requests.get(url, headers=headers, verify=verify_certificate)
+            self._logger.debug("get_HA_state response is: {}".format(response))
         except (
                 requests.exceptions.InvalidURL,
                 requests.exceptions.ConnectionError
@@ -84,7 +90,13 @@ class OctoLightHAPlugin(
         except Exception:
             self._logger.exception("Exception while making API call")
 
-        status = response.json()['state']
+        try:
+            status = response.json()['state']
+            self._logger.debug("Status response formatted as: {}".format(status))
+        except Exception as e:
+            status = 'off'
+            self._logger.error("Status response invalid format: {}".format(status))
+            
         if(status == 'on'):
             light_bool = True
         else:
@@ -94,34 +106,69 @@ class OctoLightHAPlugin(
         return light_bool
     
     def toggle_HA_state(self):
+        # Must be tuned for switch and light
         self._logger.debug("Running toggle_HA_state")
         _entity_id = self.config['entity_id']
-        url = self.config['address'] + '/api/services/light/toggle'
-        data = '{"entity_id":"' + _entity_id + '"}'
+        self._logger.debug("Entity type:",_entity_id.split('.')[0])
+        _entity_type = _entity_id.split('.')[0]
         
-        headers = dict(Authorization='Bearer ' + self.config['api_key'])
+        ## switch entity type
+        if _entity_type == "switch":
+            self._logger.debug("Running switch toggle")
+            url = self.config['address'] + '/api/services/switch/toggle'
+            data = '{"entity_id":"' + _entity_id + '"}'
+            
+            headers = dict(Authorization='Bearer ' + self.config['api_key'])
 
-        response = None
-        verify_certificate = self.config['verify_certificate']
-        try:
-            response = requests.post(url, headers=headers, data=data, verify=verify_certificate)
-        except (
-                requests.exceptions.InvalidURL,
-                requests.exceptions.ConnectionError
-        ):
-            self._logger.error("Unable to communicate with server. Check settings.")
-        except Exception:
-            self._logger.exception("Exception while making API call")
-        
-        status = response.json()[0]['state']
-        if status == 'on':
-            light_bool = True
-        else:
-            light_bool = False
-        
-        self._logger.debug("TOGGLE: Current light status is: {}".format(self.light_state))
-        return light_bool
+            light_bool = self.get_HA_state()
 
+            response = None
+            verify_certificate = self.config['verify_certificate']
+            try:
+                response = requests.post(url, headers=headers, data=data, verify=verify_certificate)
+            except (
+                    requests.exceptions.InvalidURL,
+                    requests.exceptions.ConnectionError
+            ):
+                self._logger.error("Unable to communicate with server. Check settings.")
+            except Exception:
+                self._logger.exception("Exception while making API call")
+            
+            # Invert, get_HA_state takes an unknown amount of time
+            light_bool = not light_bool
+            
+            self._logger.debug("TOGGLE: Current light status is (expected): {}".format(light_bool))
+            return light_bool
+        
+        ## light entity type
+        if _entity_type == "light":
+            self._logger.debug("Running light toggle")
+            url = self.config['address'] + '/api/services/light/toggle'
+            data = '{"entity_id":"' + _entity_id + '"}'
+            
+            headers = dict(Authorization='Bearer ' + self.config['api_key'])
+
+            response = None
+            verify_certificate = self.config['verify_certificate']
+            try:
+                response = requests.post(url, headers=headers, data=data, verify=verify_certificate)
+            except (
+                    requests.exceptions.InvalidURL,
+                    requests.exceptions.ConnectionError
+            ):
+                self._logger.error("Unable to communicate with server. Check settings.")
+            except Exception:
+                self._logger.exception("Exception while making API call")
+            
+            status = response.json()[0]['state']
+            if status == 'on':
+                light_bool = True
+            else:
+                light_bool = False
+            
+            self._logger.debug("TOGGLE: Current light status is: {}".format(self.light_state))
+            return light_bool
+        
     def on_after_startup(self):
         self._logger.info("--------------------------------------------")
         self._logger.info("OctoLightHA started, listening for GET request")
@@ -174,6 +221,7 @@ class OctoLightHAPlugin(
             return flask.jsonify(state=self.light_state)
 
         elif action == "getState":
+            # Unused
             self._logger.debug("Running api action getstate")
             self.light_state = self.get_HA_state()
             self.isLightOn = self.light_state
@@ -184,6 +232,7 @@ class OctoLightHAPlugin(
             return flask.jsonify(state=self.light_state)
 
         elif action == "turnOn":
+            # Unused
             self._logger.debug("Running api action turnon")
             if not self.light_state:
                 self.light_state = self.light_toggle()
@@ -193,6 +242,7 @@ class OctoLightHAPlugin(
             return flask.jsonify(state=self.light_state)
 
         elif action == "turnOff":
+            # Unused
             self._logger.debug("Running api action turnoff")
             if self.light_state:
                 self.light_state = self.light_toggle()
