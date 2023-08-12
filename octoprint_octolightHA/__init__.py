@@ -4,6 +4,7 @@ from __future__ import absolute_import, unicode_literals
 import octoprint.plugin
 from octoprint.events import Events
 import flask
+import traceback
 
 # HomeAssistant Compatibility
 import requests
@@ -22,7 +23,6 @@ class OctoLightHAPlugin(
 
     def __init__(self):
         self.config = dict()
-
         self.isLightOn = False
 
     ### REMOVE SETTINGS IF UPLOADED ###
@@ -67,7 +67,7 @@ class OctoLightHAPlugin(
         )
     
     def get_HA_state(self):
-        # Applicable to both light and switch entity types
+        # Agnostic to entity type
         self._logger.debug("Running get_HA_state")
         _entity_id = self.config['entity_id']
         url = self.config['address'] + '/api/states/' + _entity_id
@@ -106,68 +106,36 @@ class OctoLightHAPlugin(
         return light_bool
     
     def toggle_HA_state(self):
-        # Must be tuned for switch and light
+        ## AGNOSTIC
         self._logger.debug("Running toggle_HA_state")
         _entity_id = self.config['entity_id']
-        self._logger.debug("Entity type:",_entity_id.split('.')[0])
         _entity_type = _entity_id.split('.')[0]
+        self._logger.debug("Entity: ",_entity_id)
+
+        url = self.config['address'] + '/api/services/'+ _entity_type +'/toggle'
+        data = '{"entity_id":"' + _entity_id + '"}'
+        headers = dict(Authorization='Bearer ' + self.config['api_key'])
+        verify_certificate = self.config['verify_certificate']
+        response = None
         
-        ## switch entity type
-        if _entity_type == "switch":
-            self._logger.debug("Running switch toggle")
-            url = self.config['address'] + '/api/services/switch/toggle'
-            data = '{"entity_id":"' + _entity_id + '"}'
-            
-            headers = dict(Authorization='Bearer ' + self.config['api_key'])
-
-            light_bool = self.get_HA_state()
-
-            response = None
-            verify_certificate = self.config['verify_certificate']
-            try:
-                response = requests.post(url, headers=headers, data=data, verify=verify_certificate)
-            except (
-                    requests.exceptions.InvalidURL,
-                    requests.exceptions.ConnectionError
-            ):
-                self._logger.error("Unable to communicate with server. Check settings.")
-            except Exception:
-                self._logger.exception("Exception while making API call")
-            
-            # Invert, get_HA_state takes an unknown amount of time
-            light_bool = not light_bool
-            
-            self._logger.debug("TOGGLE: Current light status is (expected): {}".format(light_bool))
-            return light_bool
+        # Check current status
+        light_bool = self.get_HA_state()
         
-        ## light entity type
-        if _entity_type == "light":
-            self._logger.debug("Running light toggle")
-            url = self.config['address'] + '/api/services/light/toggle'
-            data = '{"entity_id":"' + _entity_id + '"}'
-            
-            headers = dict(Authorization='Bearer ' + self.config['api_key'])
-
-            response = None
-            verify_certificate = self.config['verify_certificate']
-            try:
-                response = requests.post(url, headers=headers, data=data, verify=verify_certificate)
-            except (
-                    requests.exceptions.InvalidURL,
-                    requests.exceptions.ConnectionError
-            ):
-                self._logger.error("Unable to communicate with server. Check settings.")
-            except Exception:
-                self._logger.exception("Exception while making API call")
-            
-            status = response.json()[0]['state']
-            if status == 'on':
-                light_bool = True
-            else:
-                light_bool = False
-            
-            self._logger.debug("TOGGLE: Current light status is: {}".format(self.light_state))
-            return light_bool
+        try:
+            response = requests.post(url, headers=headers, data=data, verify=verify_certificate)
+        except (
+                requests.exceptions.InvalidURL,
+                requests.exceptions.ConnectionError
+        ):
+            self._logger.error("Unable to communicate with server. Check settings.")
+        except Exception as e:
+            self._logger.error(traceback.format_exc())
+        
+        # Invert, get_HA_state takes an undetermined amount of time
+        light_bool = not light_bool
+        
+        self._logger.debug("TOGGLE: Current light status is (expected): {}".format(light_bool))
+        return light_bool
         
     def on_after_startup(self):
         self._logger.info("--------------------------------------------")
