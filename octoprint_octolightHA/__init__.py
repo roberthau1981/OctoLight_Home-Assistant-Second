@@ -32,6 +32,10 @@ class OctoLightHAPlugin(
             api_key = '',
             entity_id = '',
             verify_certificate = False,
+            turnOnPrintStart = False,
+            turnOffPrintEnd = False,
+            turnOffPrintFailure = False,
+            turnOffPrintCancellation = False
         )
     
     def on_settings_initialized(self):
@@ -226,6 +230,17 @@ class OctoLightHAPlugin(
         if event == Events.CLIENT_OPENED:
             self._plugin_manager.send_plugin_message(self._identifier, dict(isLightOn=self.light_state))
             return
+        elif event == Events.PRINT_STARTED and self.config['turnOnPrintStart']:
+            if not self.light_state:
+                self.light_state = self.light_toggle()
+                self._logger.debug("PRINT_STARTED: Light state changed.")
+            return
+        elif (event == Events.PRINT_DONE and self.config['turnOffPrintEnd']) or (event == Events.PRINT_FAILED and self.config['turnOffPrintFailure']) or (event == Events.PRINT_CANCELLED and self.config['turnOffPrintCancellation']):
+            if self.light_state:
+                self.light_state = self.light_toggle()
+                self._logger.debug("PRINT_DONE: Light state changed.")
+            return
+        
 
     def on_settings_save(self, data):
         octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
