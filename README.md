@@ -20,7 +20,7 @@ Curently, you can configure 8 settings, including 4 configuration items:
 
 - `Verify certificate`: Toggle on to verify TLS certificate and not connect on certificate issues (keep disabled if using http on local network).
 
-### Operational settings
+### Operational settings [to be introduced in v0.4]
 - `Turn on light on print start`: Turn on the light when OctoPrint receives a "print started" message.
 
 - `Turn off light on print end`: Turn off the light when OctoPrint receives a "print complete" message.
